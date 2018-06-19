@@ -1,10 +1,37 @@
-var request = require("request");
-console.log(run({
-    city1: "loimaa",
-    city2: "tampere",
-    trainNumber: 919
-}));
-function run(params) {
+const request = require("request");
+const path = require("path");
+var express = require("express");
+var app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+
+app.get('/', function (req, res) {
+    res.render('index', { title: 'Hey', message: 'Hello there!' })
+})
+app.use("/static", express.static(path.join(__dirname, "pub")));
+app.set("view engine", "pug");
+
+http.listen(3000, () => console.log('Example app listening on port 3000!'))
+
+io.on('connection', function(socket){
+    console.log('a user connected');
+    socket.on("message", function (data) {
+        console.log(data);
+    });
+    socket.on("fetch", function (data) {
+        console.log(data); 
+        fetchStationEvents(data, (answer) => {
+            socket.emit("answer", answer); 
+        });
+    });
+});
+
+// fetchStationEvents({
+    // city1: "helsinki",
+    // city2: "oulu",
+    // trainNumber: 27 
+// }, (answer) => console.log(answer));
+function fetchStationEvents(params, callback) {
 
 
 
@@ -14,58 +41,30 @@ function run(params) {
         // city2: "oulu",
         // trainNumber: 23 
     // };
-    return cityToStationShortCode(params.city1, function (stationShortCode1) {
-        return cityToStationShortCode(params.city2, function (stationShortCode2) {
-            console.log("city1: " + stationShortCode1);
-            console.log("city2: " + stationShortCode2);
-            return fetchTrainInfo(params.trainNumber, function (trainInfo) {
+    
+    let answer = {};
+    cityToStationShortCode(params.city1, function (stationShortCode1) {
+        cityToStationShortCode(params.city2, function (stationShortCode2) {
+            fetchTrainInfo(params.trainNumber, function (trainInfo) {
                 for (i in trainInfo.timeTableRows) {
                     let stationEvent = trainInfo.timeTableRows[i];
+                    if (stationEvent.type == "ARRIVAL" && stationEvent.stationShortCode == stationShortCode1) {
+                        // stationevent of train's arrival to trips departure station
+                        answer.arrivalToDeparture = stationEvent;
+                    }
                     if (stationEvent.type == "DEPARTURE" && stationEvent.stationShortCode == stationShortCode1) {
-                        // stationevent of train's departure station. train might not be there or not 
-                        
+                        // stationevent of train's departure station
+                        answer.departure = stationEvent;
                     }
-                    if (stationEvent.type == "ARRIVAL" && stationEvent.actualTime == undefined && stationEvent.stationShortCode == stationShortCode2) {
-                        // train has not yet arrived at its destination. it is also possible that train has not left its first station
-                        console.log("arrivalstationevent");
-                        console.log(stationEvent);
-                        let dateNowJSON = new Date().toJSON();
-                        let dateArrivalScheduleJSON = stationEvent.scheduledTime;
-                        let dateArrivalEstimateJSON = stationEvent.liveEstimateTime;
-                        let differenceInMinutes = stationEvent.differenceInMinutes;
-                        let dateArrivalEstimate = new Date(dateArrivalEstimateJSON);
-                        let dateArrivalSchedule = new Date(dateArrivalScheduleJSON);
-                        console.log(+ new Date(dateNowJSON));
-                        console.log(+ new Date());
-                        let conclusion = "Arvion mukaan juna saapuu ";
-                        conclusion += " raiteelle " + stationEvent.commercialTrack + " ";
-                        if (dateArrivalEstimate != "Invalid Date") {
-                            conclusion += toDoubleDigit(dateArrivalEstimate.getHours()) + ":" + toDoubleDigit(dateArrivalEstimate.getMinutes());
-                        } else {
-                            conclusion += toDoubleDigit(dateArrivalSchedule.getHours()) + ":" + toDoubleDigit(dateArrivalSchedule.getMinutes());
-                        }
-                        // train is late. if destination is many stations ahead, differenceinminutes is not updated
-                        if (differenceInMinutes > 0) {
-                            conclusion += " (" + differenceInMinutes + " minuuttia aikataulusta myöhässä) ";
-                        } else {
-                            // conclusion += "ajallaan";
-                        }
-                        console.log(conclusion);
-
-                    } else if (stationEvent.stationShortCode == stationShortCode2 && stationEvent.actualTime != undefined) {
-                        //train has already arrived at its target station
-                        console.log("train has already arrived at target station");
-                        return "train has already arrived";
-                    }
+                    if (stationEvent.type == "ARRIVAL" && stationEvent.stationShortCode == stationShortCode2) {
+                        // stationevent of train's arrival station
+                        answer.arrival = stationEvent;
+                    } 
                 }
+                callback(answer);
             });
         });
     });
-}
-
-function toDoubleDigit(n) {
-    if (n < 10) return "0" + n;
-    return n;
 }
 
 function cityToStationShortCode(city, callback) { 
@@ -102,13 +101,4 @@ function fetchTrainInfo(trainNumber, callback) {
             callback(answerJSON);
         }); 
     })(callback);
-}
-
-function handleRequest(target) {
-    console.log("sdfölkj");
-    let answer;
-    request(target, function (err, res, body) {
-        console.log("parsed: ");
-        console.log(JSON.parse(body)[0]);
-    });
 }

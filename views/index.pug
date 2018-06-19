@@ -1,0 +1,32 @@
+html
+  head
+    title= title
+    style
+        include bootstrap.min.css
+  body
+    div(id="trainInfoForm")
+        p  
+            span(id="city1Prefix" class="prefix") lähtöpaikka 
+            input(id="city1")
+
+        p 
+            span(id="city2Prefix" class="prefix") määränpää
+            input(id="city2")
+
+        p 
+            span(id="trainNumberPrefix" class="prefix") junan numero  
+            input(id="trainNumber")
+
+        p
+            button(id="fetch") hae tiedot
+
+    
+    div(id="answer")
+        p(id="answerCity1")
+        p(id="answerField1")
+        p(id="answerCity2")
+        p(id="answerField2")
+    script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js")
+    script(src="/socket.io/socket.io.js")
+    script(src="/static/app.js")
+    
