@@ -75,7 +75,6 @@ function cityToStationShortCode(city, callback) {
                 return;
             }
             let answerJSON = JSON.parse(body);
-            console.log(city);
             let answerCity =  "Stations on city '" + city + "' not found";
             for (i in answerJSON) {
                 let station = answerJSON[i];
