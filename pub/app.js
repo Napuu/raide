@@ -15,6 +15,31 @@ $("#trainInfoForm #city1").val(getCookie("city1"));
 $("#trainInfoForm #city2").val(getCookie("city2"));
 $("#trainInfoForm #trainNumber").val(getCookie("trainNumber"));
 
+if (parseInt($(window).width()) > 400) {
+    $(".container").width(400);
+}
+
+$(".container .col").css({
+    "display": "inline-block",
+    "vertical-align": "middle",
+    "float": "none"
+});
+
+$(".container").css({
+    "padding-top": "20px",
+    "justify-content": "center",
+    "align-content": "center"
+});
+$(".container *").css({
+    "font-size": "15px"
+});
+$(".container .row").css({
+    "padding": "15px"
+});
+$(".container .col").css({
+    // "text-align": "right"
+});
+
 var trainParams = {
     city1: getCookie("city1"),
     city2: getCookie("city2"),
@@ -124,7 +149,8 @@ socket.on("answer", function (data) {
     console.log(answerField2);
 
     if (data.arrival.differenceInMinutes != 0) {
-        answerField2 += " " + Math.abs(data.arrival.differenceInMinutes) + " minuuttia ";
+        if (Math.abs(data.arrival.differenceInMinutes) != 1) answerField2 += " " + Math.abs(data.arrival.differenceInMinutes) + " minuuttia ";
+        else answerField2 += " Minuutin ";
         if (data.arrival.differenceInMinutes < 0) answerField2 += "etuajassa";
         else answerField2 += "myöhässä";
         answerField2 += ".";
@@ -134,6 +160,7 @@ socket.on("answer", function (data) {
 
     $("#answerCity2").html(firstToUpperCase(trainParams.city2));
     $("#answer #answerField2").html(answerField2);
+
     
 });
 
