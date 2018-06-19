@@ -6,7 +6,7 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 app.get('/', function (req, res) {
-    res.render('index', { title: 'Hey', message: 'Hello there!', departure: "Lähtöpaikka", arrival: "Määränpää", trainNumber: "Junan numero" })
+    res.render('index', { title: 'Hey', message: 'Hello there!', departure: "Lähtöpaikka", arrival: "Määränpää", trainNumber: "Junan numero", fetchStuff: "Hae tiedot" })
 })
 app.use("/static", express.static(path.join(__dirname, "pub")));
 app.set("view engine", "pug");
@@ -75,6 +75,7 @@ function cityToStationShortCode(city, callback) {
                 return;
             }
             let answerJSON = JSON.parse(body);
+            console.log(city);
             let answerCity =  "Stations on city '" + city + "' not found";
             for (i in answerJSON) {
                 let station = answerJSON[i];

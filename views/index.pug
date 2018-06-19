@@ -9,29 +9,20 @@ html
         
 
     body
-        div(class="container")
-            div(id="trainInfoForm")
-                div(class="row")  
-                    div(class="col")
-                        = departure 
-                    div(class="col")
-                        input(type="text" id="city1")
+        form(id="questionForm")
+            div(class="form-group")  
+                label(for="city1")= departure 
+                input(type="text" class="form-control" id="city1Input")
 
-                div(class="row") 
-                    div(class="col")
-                        = arrival
-                    div(class="col")
-                        input(id="city2")
+            div(class="form-group")
+                label(for="city2")= arrival
+                input(type="text" class="form-control" id="city2Input")
 
-                div(class="row") 
-                    div(class="col")
-                        = trainNumber
-                    div(class="col")
-                        input(id="trainNumber")
+            div(class="form-group")
+                label(for="trainNumber")= trainNumber
+                input(type="number" class="form-control" id="trainNumberInput")
 
-                div(class="row")
-                    div(class="col")
-                        button(type="button" class="btn btn-primary" id="fetch") hae tiedot
+            button(type="button" class="btn btn-primary" id="fetchButton") Hae tiedot
 
             
             div(id="answer")
