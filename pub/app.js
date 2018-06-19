@@ -144,15 +144,16 @@ socket.on("answer", function (data) {
         }
         answerField2 += "klo. " + toDD(timeToUse.getHours()) + ":" + toDD(timeToUse.getMinutes()) + ".";
     } else {
-        answerField2 += "Juna on saapunut raiteelle " + data.arrival.commercialTrack + ".";
+        let timeToUse = new Date(data.arrival.actualTime);
+        answerField2 += "Juna on saapunut raiteelle " + data.arrival.commercialTrack + " klo. " + toDD(timeToUse.getHours()) + ":" + toDD(timeToUse.getMinutes()) + ".";
     }
     console.log(answerField2);
 
     if (data.arrival.differenceInMinutes != 0) {
         if (Math.abs(data.arrival.differenceInMinutes) != 1) answerField2 += " " + Math.abs(data.arrival.differenceInMinutes) + " minuuttia ";
         else answerField2 += " Minuutin ";
-        if (data.arrival.differenceInMinutes < 0) answerField2 += "etuajassa";
-        else answerField2 += "myöhässä";
+        if (data.arrival.differenceInMinutes < 0) answerField2 += "aikataulusta etuajassa";
+        else answerField2 += "aikataulusta myöhässä";
         answerField2 += ".";
     }
     $("#answerCity1").html(firstToUpperCase(trainParams.city1));
