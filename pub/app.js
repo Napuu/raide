@@ -1,10 +1,9 @@
 var socket = io();
 
+// stylings 
 $("#city1Input").val(getCookie("city1"));
 $("#city2Input").val(getCookie("city2"));
 $("#trainNumberInput").val(getCookie("trainNumber"));
-
-
 
 $("#questionForm").css({
     "padding": "10px",
@@ -13,11 +12,11 @@ $("#questionForm").css({
     "margin-right": "10px"
 });
 
-
 $("#errorMessage").css({
     "width": $("#questionForm").width() + 22 + "px",
     "margin-left": "10px" 
 }).hide();
+
 $("#answer").css({
     "left": $("#questionForm").offset().left + "px",
     "width": $("#questionForm").width() + 22 + "px",
@@ -26,15 +25,10 @@ $("#answer").css({
     "margin-left": "10px",
     "margin-right": "10px"
 }).hide();
+
 $("#fetchButton").css({
     "margin-top": "5px"
 });
-
-// $(".container .col").css({
-    // "display": "inline-block",
-    // "vertical-align": "middle",
-    // "float": "none"
-// });
 
 
 var trainParams = {
@@ -43,8 +37,9 @@ var trainParams = {
     trainNumber: getCookie("trainNumber")
 }
 
+// logic for loading indicator
+// its activated with setTimeout
 var indicatorContent = "";
-//var indicatorInterval = setInterval(updateIndicator, 200);
 var indicatorInterval;
 function updateIndicator() { 
     let next = indicatorContent + ".";
@@ -52,15 +47,15 @@ function updateIndicator() {
     $("#loadingIndicator").html(next);
     indicatorContent = next;
 }
-$("#fetchButton").on("click", function (ev) {
 
+// clicking button saves forms data as cookie and emits params to server
+$("#fetchButton").on("click", function (ev) {
     trainParams.city1 = $("#city1Input").val();
     trainParams.city2 = $("#city2Input").val();
     trainParams.trainNumber = $("#trainNumberInput").val();
     setCookie("city1", trainParams.city1);
     setCookie("city2", trainParams.city2);
     setCookie("trainNumber", trainParams.trainNumber);
-    console.log("fetching stuff");
     $("#answer, #errorMessage").fadeOut(400, () => {
         setTimeout(() => {$("#loadingIndicator").fadeIn()}, 200);
     });
@@ -68,9 +63,13 @@ $("#fetchButton").on("click", function (ev) {
     socket.emit("fetch", trainParams);
 });
 
+// enter acts same way as clicking button
 $(document).keypress(function (ev) {
     if (ev.which == 13) $("#fetchButton").click().focus();
 });
+
+// get answer from server
+// if there is an error (no train found), show error message
 socket.on("answer", function (data) {
     clearInterval(indicatorInterval);
     $("#loadingIndicator").html("").fadeOut(400, () => {
@@ -78,14 +77,16 @@ socket.on("answer", function (data) {
             $("#errorMessage").html("Junaa ei löytynyt näillä tiedoilla").fadeIn(); 
         }
         else {
-            $("#answer").fadeIn();
             let answerCity1 = firstToUpperCase(trainParams.city1);
+
             let answerCity2 = firstToUpperCase(trainParams.city2);
             
             let city1Track = "Raide " + data.departure.commercialTrack;
             if (data.departure.commercialTrack == "") city1Track += "ei tiedossa";
+
             let city2Track = "Raide " + data.arrival.commercialTrack;
             if (data.arrival.commercialTrack == "") city2Track += "ei tiedossa";
+
 
             let city1DepartureTime = "";
             let timeToUse1;
@@ -105,7 +106,7 @@ socket.on("answer", function (data) {
             let timeToUse2;
             if (data.arrival.actualTime != undefined) {
                 timeToUse2 = new Date(data.arrival.actualTime);
-                city1DepartureTime += "Toteutunut saapumisaika: ";
+                city2DepartureTime += "Toteutunut saapumisaika: ";
             } else if (data.arrival.liveEstimateTime != undefined) {
                 timeToUse2 = new Date(data.arrival.liveEstimateTime);
                 city2DepartureTime += "Arvioitu saapumisaika: ";
@@ -123,9 +124,14 @@ socket.on("answer", function (data) {
             $("#answerCity2").html(firstToUpperCase(trainParams.city2));
             $("#city2Track").html(city2Track);
             $("#city2DepartureTime").html(city2DepartureTime);
+
+            $("#answer").fadeIn();
         }
     });    
 });
+
+
+// Utilities
 
 function getCookie(key) {
     let val = "; " + document.cookie;

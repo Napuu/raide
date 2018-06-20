@@ -6,17 +6,13 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 app.get('/', function (req, res) {
-    res.render('index', { title: 'Hey', message: 'Hello there!', departure: "Lähtöpaikka", arrival: "Määränpää", trainNumber: "Junan numero", fetchStuff: "Hae tiedot" })
+    res.render('index', { title: 'Junien tiedot', departure: "Lähtöpaikka", arrival: "Määränpää", trainNumber: "Junan numero", fetchStuff: "Hae tiedot" })
 })
 app.use("/static", express.static(path.join(__dirname, "pub")));
 app.set("view engine", "pug");
 
-http.listen(3000, () => console.log('Example app listening on port 3000!')) 
+http.listen(3000, () => console.log("server running")) 
 io.on('connection', function(socket){
-    console.log('a user connected');
-    socket.on("message", function (data) {
-        console.log(data);
-    });
     socket.on("fetch", function (data) {
         console.log(data); 
         fetchStationEvents(data, (answer) => {
@@ -25,16 +21,11 @@ io.on('connection', function(socket){
     });
 });
 
-// fetchStationEvents({
-    // city1: "helsinki",
-    // city2: "oulu",
-    // trainNumber: 27 
-// }, (answer) => console.log(answer));
 function fetchStationEvents(params, callback) {
 
 
 
-    // following parameters are acquired from the ticket 
+    // client emits object 'params'. example below
     // let params = {
         // city1: "tampere",
         // city2: "oulu",
@@ -45,6 +36,7 @@ function fetchStationEvents(params, callback) {
     cityToStationShortCode(params.city1, function (stationShortCode1) {
         cityToStationShortCode(params.city2, function (stationShortCode2) {
             fetchTrainInfo(params.trainNumber, function (trainInfo) {
+                // city name is wrong, or train with that number doesn't exist
                 if (stationShortCode1.includes("not found") || stationShortCode2.includes("not found") || trainInfo == undefined) {
                     answer.err = true;
                 } else {
@@ -64,12 +56,20 @@ function fetchStationEvents(params, callback) {
                         } 
                     }
                 }
+                // train doesn't stop on these cities, or cities are wrong way around
+                if (answer.departure == undefined || answer.arrival == undefined || (new Date(answer.departure.scheduledTime)) > (new Date(answer.arrival.scheduledTime))){
+                    answer.err = true;
+                }
                 callback(answer);
             });
         });
     });
 }
 
+
+// in vr-api cities are referred by their 'shortCode'
+// for example Helsinki=HKI
+// if there are multiple stations in one city, the passenger one there has postfix 'asema' for example in Tampere, Tampere asema
 function cityToStationShortCode(city, callback) { 
     (function (callback) {
         request("https://rata.digitraffic.fi/api/v1/metadata/stations", function (err, resp, body) {
@@ -91,7 +91,6 @@ function cityToStationShortCode(city, callback) {
         });
     })(callback); 
 }
-
 
 function fetchTrainInfo(trainNumber, callback) {
     (function (callback) {
