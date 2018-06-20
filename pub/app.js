@@ -67,111 +67,51 @@ $("#fetchButton").on("click", function (ev) {
 });
 
 socket.on("answer", function (data) {
-    console.log(data);
     $("#answer").show();
-    let answerField1 = "", answerField2 = "";
-    // scenarios:
-    // 1: train has not arrived at departure station 
-    // 2: is not ready at trips first station
-    // 3: train is ready at trips departure station
-    // 4: train is on its way from departure to arrival station
-    //   4.1 estimated arrival late
-    //   4.2 estimated arrival on schedule
-    // 5: train has arrived at its destination 
+    let answerCity1 = firstToUpperCase(trainParams.city1);
+    let answerCity2 = firstToUpperCase(trainParams.city2);
     
+    let city1Track = "Raide " + data.departure.commercialTrack;
+    if (data.departure.commercialTrack == "") city1Track += "ei tiedossa";
+    let city2Track = "Raide " + data.departure.commercialTrack;
+    if (data.arrival.commercialTrack == "") city2Track += "ei tiedossa";
 
-    // updated scenarios
-    //
-    // 1. field
-    //  train is arriving at its departure station
-    //   estimated departure time
-    //  train is not ready at its departure station
-    //   estimated departure time
-    //  train has left its departure station
-    //  2. field
-    //   train is arriving 
-    //   train has already arrived
-    // 1
-    
-    // stuff for departure station
-    if (data.departure.actualTime == undefined) {
-        if (data.arrivalToDeparture != undefined && data.arrivalToDeparture.actualTime == undefined) { 
-            answerField1 += "Juna saapuu raiteelle " + data.arrivalToDeparture.commercialTrack;
-            let timeToUse; 
-            let estimate = false;
-            if (data.arrivalToDeparture.liveEstimateTime != undefined) {
-                timeToUse = data.arrivalToDeparture.liveEstimateTime;
-                estimate = true;
-            } else {
-                timeToUse = data.arrivalToDeparture.scheduledTime;
-            }
-            if (estimate) {
-                answerField1 += ", arvion mukaan ";
-            } else {
-                answerField1 += ", aikataulun mukaan ";
-            }
-            let dateTimeToUse = new Date(timeToUse);
-            answerField1 += " klo. " + toDD(dateTimeToUse.getHours()) + ":" + toDD(dateTimeToUse.getMinutes()) + ".";
-        } 
-        // 2
-        else if (data.departure.trainReady == undefined || !data.departure.trainReady.accepted) {
-            answerField1 = "Juna ei ole vielä valmiina raiteella " + data.departure.commercialTrack + ".";
-        }
-        answerField1 += "<br>";
-        let timeToUse;
-        let estimate = false;
-        if (data.departure.liveEstimateTime != undefined) {
-            timeToUse = new Date(data.departure.liveEstimateTime);
-            estimate = true;
-        } else {
-            timeToUse = new Date(data.departure.scheduledTime);
-        }
-        answerField1 += "Juna lähtee raiteelta " + data.departure.commercialTrack;
-        if (estimate) {
-            answerField1 += ", arvion mukaan ";
-        } else {
-            answerField1 += ", aikataulun mukaan ";
-        }
-        answerField1 += " klo. " + toDD(timeToUse.getHours()) + ":" + toDD(timeToUse.getMinutes()) + ".";
+    let city1DepartureTime = "";
+    let timeToUse1;
+    if (data.departure.actualTime != undefined) {
+        timeToUse1 = new Date(data.departure.actualTime);
+        city1DepartureTime += "Toteutunut lähtöaika: ";
+    } else if (data.departure.liveEstimateTime != undefined) {
+        timeToUse1 = new Date(data.departure.liveEstimateTime);
+        city1DepartureTime += "Arvioitu lähtöaika: ";
     } else {
-        let timeToUse = new Date(data.departure.actualTime);
-        answerField1 += "Juna lähti " + toDD(timeToUse.getHours()) + ":" + toDD(timeToUse.getMinutes()) + ".";
+        timeToUse1 = new Date(data.departure.scheduledTime);
+        city1DepartureTime += "Arvioitu lähtöaika: ";
     }
-    console.log("answer for request");
-    console.log(answerField1);
-    // $("#answer #answerField").html(answerField1);
-    
+    city1DepartureTime += toDD(timeToUse1.getHours()) + ":" + toDD(timeToUse1.getMinutes());
 
-    if (data.arrival.actualTime == undefined) {
-        answerField2 += "Juna saapuu raiteelle " + data.arrival.commercialTrack;
-        let timeToUse;
-        if (data.arrival.liveEstimateTime != undefined) {
-            timeToUse = new Date(data.arrival.liveEstimateTime);
-            answerField2 += ", arvion mukaan ";
-        } else {
-            timeToUse = new Date(data.arrival.scheduledTime);
-            answerField2 += ", aikataulun mukaan ";
-        }
-        answerField2 += "klo. " + toDD(timeToUse.getHours()) + ":" + toDD(timeToUse.getMinutes()) + ".";
+    let city2DepartureTime = "";
+    let timeToUse2;
+    if (data.arrival.actualTime != undefined) {
+        timeToUse2 = new Date(data.arrival.actualTime);
+        city1DepartureTime += "Toteutunut saapumisaika: ";
+    } else if (data.arrival.liveEstimateTime != undefined) {
+        timeToUse2 = new Date(data.arrival.liveEstimateTime);
+        city2DepartureTime += "Arvioitu saapumisaika: ";
     } else {
-        let timeToUse = new Date(data.arrival.actualTime);
-        answerField2 += "Juna on saapunut raiteelle " + data.arrival.commercialTrack + " klo. " + toDD(timeToUse.getHours()) + ":" + toDD(timeToUse.getMinutes()) + ".";
+        timeToUse2 = new Date(data.arrival.scheduledTime);
+        city2DepartureTime += "Arvioitu saapumisaika: ";
     }
-    console.log(answerField2);
+    city2DepartureTime += toDD(timeToUse2.getHours()) + ":" + toDD(timeToUse2.getMinutes());
 
-    if (data.arrival.differenceInMinutes != 0) {
-        if (Math.abs(data.arrival.differenceInMinutes) != 1) answerField2 += " " + Math.abs(data.arrival.differenceInMinutes) + " minuuttia ";
-        else answerField2 += " Minuutin ";
-        if (data.arrival.differenceInMinutes < 0) answerField2 += "aikataulusta etuajassa";
-        else answerField2 += "aikataulusta myöhässä";
-        answerField2 += ".";
-    }
+
     $("#answerCity1").html(firstToUpperCase(trainParams.city1));
-    $("#answer #answerField1").html(answerField1);
+    $("#city1Track").html(city1Track);
+    $("#city1DepartureTime").html(city1DepartureTime);
 
     $("#answerCity2").html(firstToUpperCase(trainParams.city2));
-    $("#answer #answerField2").html(answerField2);
-
+    $("#city2Track").html(city2Track);
+    $("#city2DepartureTime").html(city2DepartureTime);
     
 });
 

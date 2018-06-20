@@ -27,14 +27,23 @@ html
             
         div(class="container-fluid border rounded" id="answer")
             div(class="row")
-                h6(class="col" id="answerCity1")
+                h6(class="col" id="answerCity1") 
+                div(class="col" id="city1Ready")
             div(class="row")
-                div(class="col" id="answerField1")
+                div(class="col" id="city1Track")
+            div(class="row") 
+                div(class="col" id="city1DepartureTime")
+
             div(class="row mt-3")
+
             div(class="row")
-                h6(class="col" id="answerCity2")
+                h6(class="col" id="answerCity2") 
+                div(class="col" id="city2Ready")
             div(class="row")
-                div(class="col" id="answerField2")
+                div(class="col" id="city2Track")
+            div(class="row") 
+                div(class="col" id="city2DepartureTime")
+
         script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js")
         script(src="/static/bootstrap.min.js")
         script(src="/socket.io/socket.io.js")
