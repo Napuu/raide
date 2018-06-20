@@ -11,34 +11,43 @@ socket.emit("message", "moI");
 
 // //get values from cookie
 
-$("#trainInfoForm #city1").val(getCookie("city1"));
-$("#trainInfoForm #city2").val(getCookie("city2"));
-$("#trainInfoForm #trainNumber").val(getCookie("trainNumber"));
+$("#city1Input").val(getCookie("city1"));
+$("#city2Input").val(getCookie("city2"));
+$("#trainNumberInput").val(getCookie("trainNumber"));
 
-if (parseInt($(window).width()) > 400) {
-    $(".container").width(400);
-}
+// if (parseInt($(window).width()) > 400) {
+    // $(".container").width(400);
+// }
 
-$(".container .col").css({
-    "display": "inline-block",
-    "vertical-align": "middle",
-    "float": "none"
+// $("#answer").width($("#questionForm").width());
+
+console.log("answerwidth" + $("#answer").width());
+console.log("questionwidth" + $("#questionForm").width());
+$("#questionForm").css({
+    "padding": "10px",
+    "margin-top": "10px",
+    "margin-left": "10px",
+    "margin-right": "10px"
 });
 
-$(".container").css({
-    "padding-top": "20px",
-    "justify-content": "center",
-    "align-content": "center"
+
+$("#answer").css({
+    "width": $("#questionForm").width() + 22 + "px",
+    "padding": "10px",
+    "margin-top": "10px",
+    "margin-left": "10px",
+    "margin-right": "10px"
+}).hide();
+$("#fetchButton").css({
+    "margin-top": "5px"
 });
-$(".container *").css({
-    "font-size": "15px"
-});
-$(".container .row").css({
-    "padding": "15px"
-});
-$(".container .col").css({
-    // "text-align": "right"
-});
+
+// $(".container .col").css({
+    // "display": "inline-block",
+    // "vertical-align": "middle",
+    // "float": "none"
+// });
+
 
 var trainParams = {
     city1: getCookie("city1"),
@@ -46,10 +55,10 @@ var trainParams = {
     trainNumber: getCookie("trainNumber")
 }
 
-$("#trainInfoForm #fetch").on("click", function (ev) {
-    trainParams.city1 = $("#trainInfoForm #city1").val();
-    trainParams.city2 = $("#trainInfoForm #city2").val();
-    trainParams.trainNumber = $("#trainInfoForm #trainNumber").val();
+$("#fetchButton").on("click", function (ev) {
+    trainParams.city1 = $("#city1Input").val();
+    trainParams.city2 = $("#city2Input").val();
+    trainParams.trainNumber = $("#trainNumberInput").val();
     setCookie("city1", trainParams.city1);
     setCookie("city2", trainParams.city2);
     setCookie("trainNumber", trainParams.trainNumber);
@@ -59,6 +68,7 @@ $("#trainInfoForm #fetch").on("click", function (ev) {
 
 socket.on("answer", function (data) {
     console.log(data);
+    $("#answer").show();
     let answerField1 = "", answerField2 = "";
     // scenarios:
     // 1: train has not arrived at departure station 
