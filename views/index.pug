@@ -9,7 +9,7 @@ html
         
 
     body
-        form(id="questionForm")
+        form(class="border rounded" id="questionForm")
             div(class="form-group")  
                 label(for="city1")= departure 
                 input(type="text" class="form-control" id="city1Input")
@@ -25,11 +25,16 @@ html
             button(type="button" class="btn btn-primary" id="fetchButton") Hae tiedot
 
             
-            div(id="answer")
-                p(id="answerCity1")
-                p(id="answerField1")
-                p(id="answerCity2")
-                p(id="answerField2")
+        div(class="container-fluid border rounded" id="answer")
+            div(class="row")
+                h6(class="col" id="answerCity1")
+            div(class="row")
+                div(class="col" id="answerField1")
+            div(class="row mt-3")
+            div(class="row")
+                h6(class="col" id="answerCity2")
+            div(class="row")
+                div(class="col" id="answerField2")
         script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js")
         script(src="/static/bootstrap.min.js")
         script(src="/socket.io/socket.io.js")

@@ -15,16 +15,31 @@ $("#city1Input").val(getCookie("city1"));
 $("#city2Input").val(getCookie("city2"));
 $("#trainNumberInput").val(getCookie("trainNumber"));
 
-if (parseInt($(window).width()) > 400) {
-    $(".container").width(400);
-}
+// if (parseInt($(window).width()) > 400) {
+    // $(".container").width(400);
+// }
 
+// $("#answer").width($("#questionForm").width());
+
+console.log("answerwidth" + $("#answer").width());
+console.log("questionwidth" + $("#questionForm").width());
 $("#questionForm").css({
-    "padding": "10px"
+    "padding": "10px",
+    "margin-top": "10px",
+    "margin-left": "10px",
+    "margin-right": "10px"
 });
 
+
+$("#answer").css({
+    "width": $("#questionForm").width() + 22 + "px",
+    "padding": "10px",
+    "margin-top": "10px",
+    "margin-left": "10px",
+    "margin-right": "10px"
+}).hide();
 $("#fetchButton").css({
-    "margin-top": "20px"
+    "margin-top": "5px"
 });
 
 // $(".container .col").css({
@@ -53,6 +68,7 @@ $("#fetchButton").on("click", function (ev) {
 
 socket.on("answer", function (data) {
     console.log(data);
+    $("#answer").show();
     let answerField1 = "", answerField2 = "";
     // scenarios:
     // 1: train has not arrived at departure station 
