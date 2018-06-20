@@ -14,6 +14,10 @@ $("#questionForm").css({
 });
 
 
+$("#errorMessage").css({
+    "width": $("#questionForm").width() + 22 + "px",
+    "margin-left": "10px" 
+}).hide();
 $("#answer").css({
     "left": $("#questionForm").offset().left + "px",
     "width": $("#questionForm").width() + 22 + "px",
@@ -57,8 +61,8 @@ $("#fetchButton").on("click", function (ev) {
     setCookie("city2", trainParams.city2);
     setCookie("trainNumber", trainParams.trainNumber);
     console.log("fetching stuff");
-    $("#answer").fadeOut(400, () => {
-        $("#loadingIndicator").fadeIn();
+    $("#answer, #errorMessage").fadeOut(400, () => {
+        setTimeout(() => {$("#loadingIndicator").fadeIn()}, 200);
     });
     indicatorInterval = setInterval(updateIndicator, 200); 
     socket.emit("fetch", trainParams);
@@ -70,53 +74,57 @@ $(document).keypress(function (ev) {
 socket.on("answer", function (data) {
     clearInterval(indicatorInterval);
     $("#loadingIndicator").html("").fadeOut(400, () => {
-        $("#answer").fadeIn();
-    });
-    let answerCity1 = firstToUpperCase(trainParams.city1);
-    let answerCity2 = firstToUpperCase(trainParams.city2);
-    
-    let city1Track = "Raide " + data.departure.commercialTrack;
-    if (data.departure.commercialTrack == "") city1Track += "ei tiedossa";
-    let city2Track = "Raide " + data.departure.commercialTrack;
-    if (data.arrival.commercialTrack == "") city2Track += "ei tiedossa";
+        if (data.err) {
+            $("#errorMessage").html("Junaa ei löytynyt näillä tiedoilla").fadeIn(); 
+        }
+        else {
+            $("#answer").fadeIn();
+            let answerCity1 = firstToUpperCase(trainParams.city1);
+            let answerCity2 = firstToUpperCase(trainParams.city2);
+            
+            let city1Track = "Raide " + data.departure.commercialTrack;
+            if (data.departure.commercialTrack == "") city1Track += "ei tiedossa";
+            let city2Track = "Raide " + data.arrival.commercialTrack;
+            if (data.arrival.commercialTrack == "") city2Track += "ei tiedossa";
 
-    let city1DepartureTime = "";
-    let timeToUse1;
-    if (data.departure.actualTime != undefined) {
-        timeToUse1 = new Date(data.departure.actualTime);
-        city1DepartureTime += "Toteutunut lähtöaika: ";
-    } else if (data.departure.liveEstimateTime != undefined) {
-        timeToUse1 = new Date(data.departure.liveEstimateTime);
-        city1DepartureTime += "Arvioitu lähtöaika: ";
-    } else {
-        timeToUse1 = new Date(data.departure.scheduledTime);
-        city1DepartureTime += "Arvioitu lähtöaika: ";
-    }
-    city1DepartureTime += toDD(timeToUse1.getHours()) + ":" + toDD(timeToUse1.getMinutes());
+            let city1DepartureTime = "";
+            let timeToUse1;
+            if (data.departure.actualTime != undefined) {
+                timeToUse1 = new Date(data.departure.actualTime);
+                city1DepartureTime += "Toteutunut lähtöaika: ";
+            } else if (data.departure.liveEstimateTime != undefined) {
+                timeToUse1 = new Date(data.departure.liveEstimateTime);
+                city1DepartureTime += "Arvioitu lähtöaika: ";
+            } else {
+                timeToUse1 = new Date(data.departure.scheduledTime);
+                city1DepartureTime += "Arvioitu lähtöaika: ";
+            }
+            city1DepartureTime += toDD(timeToUse1.getHours()) + ":" + toDD(timeToUse1.getMinutes());
 
-    let city2DepartureTime = "";
-    let timeToUse2;
-    if (data.arrival.actualTime != undefined) {
-        timeToUse2 = new Date(data.arrival.actualTime);
-        city1DepartureTime += "Toteutunut saapumisaika: ";
-    } else if (data.arrival.liveEstimateTime != undefined) {
-        timeToUse2 = new Date(data.arrival.liveEstimateTime);
-        city2DepartureTime += "Arvioitu saapumisaika: ";
-    } else {
-        timeToUse2 = new Date(data.arrival.scheduledTime);
-        city2DepartureTime += "Arvioitu saapumisaika: ";
-    }
-    city2DepartureTime += toDD(timeToUse2.getHours()) + ":" + toDD(timeToUse2.getMinutes());
+            let city2DepartureTime = "";
+            let timeToUse2;
+            if (data.arrival.actualTime != undefined) {
+                timeToUse2 = new Date(data.arrival.actualTime);
+                city1DepartureTime += "Toteutunut saapumisaika: ";
+            } else if (data.arrival.liveEstimateTime != undefined) {
+                timeToUse2 = new Date(data.arrival.liveEstimateTime);
+                city2DepartureTime += "Arvioitu saapumisaika: ";
+            } else {
+                timeToUse2 = new Date(data.arrival.scheduledTime);
+                city2DepartureTime += "Arvioitu saapumisaika: ";
+            }
+            city2DepartureTime += toDD(timeToUse2.getHours()) + ":" + toDD(timeToUse2.getMinutes());
 
 
-    $("#answerCity1").html(firstToUpperCase(trainParams.city1));
-    $("#city1Track").html(city1Track);
-    $("#city1DepartureTime").html(city1DepartureTime);
+            $("#answerCity1").html(firstToUpperCase(trainParams.city1));
+            $("#city1Track").html(city1Track);
+            $("#city1DepartureTime").html(city1DepartureTime);
 
-    $("#answerCity2").html(firstToUpperCase(trainParams.city2));
-    $("#city2Track").html(city2Track);
-    $("#city2DepartureTime").html(city2DepartureTime);
-    
+            $("#answerCity2").html(firstToUpperCase(trainParams.city2));
+            $("#city2Track").html(city2Track);
+            $("#city2DepartureTime").html(city2DepartureTime);
+        }
+    });    
 });
 
 function getCookie(key) {

@@ -11,8 +11,7 @@ app.get('/', function (req, res) {
 app.use("/static", express.static(path.join(__dirname, "pub")));
 app.set("view engine", "pug");
 
-http.listen(3000, () => console.log('Example app listening on port 3000!'))
-
+http.listen(3000, () => console.log('Example app listening on port 3000!')) 
 io.on('connection', function(socket){
     console.log('a user connected');
     socket.on("message", function (data) {
@@ -46,20 +45,24 @@ function fetchStationEvents(params, callback) {
     cityToStationShortCode(params.city1, function (stationShortCode1) {
         cityToStationShortCode(params.city2, function (stationShortCode2) {
             fetchTrainInfo(params.trainNumber, function (trainInfo) {
-                for (i in trainInfo.timeTableRows) {
-                    let stationEvent = trainInfo.timeTableRows[i];
-                    if (stationEvent.type == "ARRIVAL" && stationEvent.stationShortCode == stationShortCode1) {
-                        // stationevent of train's arrival to trips departure station
-                        answer.arrivalToDeparture = stationEvent;
+                if (stationShortCode1.includes("not found") || stationShortCode2.includes("not found") || trainInfo == undefined) {
+                    answer.err = true;
+                } else {
+                    for (i in trainInfo.timeTableRows) {
+                        let stationEvent = trainInfo.timeTableRows[i];
+                        if (stationEvent.type == "ARRIVAL" && stationEvent.stationShortCode == stationShortCode1) {
+                            // stationevent of train's arrival to trips departure station
+                            answer.arrivalToDeparture = stationEvent;
+                        }
+                        if (stationEvent.type == "DEPARTURE" && stationEvent.stationShortCode == stationShortCode1) {
+                            // stationevent of train's departure station
+                            answer.departure = stationEvent;
+                        }
+                        if (stationEvent.type == "ARRIVAL" && stationEvent.stationShortCode == stationShortCode2) {
+                            // stationevent of train's arrival station
+                            answer.arrival = stationEvent;
+                        } 
                     }
-                    if (stationEvent.type == "DEPARTURE" && stationEvent.stationShortCode == stationShortCode1) {
-                        // stationevent of train's departure station
-                        answer.departure = stationEvent;
-                    }
-                    if (stationEvent.type == "ARRIVAL" && stationEvent.stationShortCode == stationShortCode2) {
-                        // stationevent of train's arrival station
-                        answer.arrival = stationEvent;
-                    } 
                 }
                 callback(answer);
             });
