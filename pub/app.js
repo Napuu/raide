@@ -1,28 +1,11 @@
 var socket = io();
-socket.emit("message", "moI");
-
-//debug
-// setCookie("city1", "helsinki");
-// setCookie("city2", "oulu");
-// setCookie("trainNumber", 27);
-// setCookie("city1", "kokkola");
-// setCookie("city2", "oulu");
-// setCookie("trainNumber", 29);
-
-// //get values from cookie
 
 $("#city1Input").val(getCookie("city1"));
 $("#city2Input").val(getCookie("city2"));
 $("#trainNumberInput").val(getCookie("trainNumber"));
 
-// if (parseInt($(window).width()) > 400) {
-    // $(".container").width(400);
-// }
 
-// $("#answer").width($("#questionForm").width());
 
-console.log("answerwidth" + $("#answer").width());
-console.log("questionwidth" + $("#questionForm").width());
 $("#questionForm").css({
     "padding": "10px",
     "margin-top": "10px",
@@ -32,6 +15,7 @@ $("#questionForm").css({
 
 
 $("#answer").css({
+    "left": $("#questionForm").offset().left + "px",
     "width": $("#questionForm").width() + 22 + "px",
     "padding": "10px",
     "margin-top": "10px",
@@ -55,7 +39,17 @@ var trainParams = {
     trainNumber: getCookie("trainNumber")
 }
 
+var indicatorContent = "";
+//var indicatorInterval = setInterval(updateIndicator, 200);
+var indicatorInterval;
+function updateIndicator() { 
+    let next = indicatorContent + ".";
+    if (next == "......") next = "";
+    $("#loadingIndicator").html(next);
+    indicatorContent = next;
+}
 $("#fetchButton").on("click", function (ev) {
+
     trainParams.city1 = $("#city1Input").val();
     trainParams.city2 = $("#city2Input").val();
     trainParams.trainNumber = $("#trainNumberInput").val();
@@ -63,11 +57,21 @@ $("#fetchButton").on("click", function (ev) {
     setCookie("city2", trainParams.city2);
     setCookie("trainNumber", trainParams.trainNumber);
     console.log("fetching stuff");
+    $("#answer").fadeOut(400, () => {
+        $("#loadingIndicator").fadeIn();
+    });
+    indicatorInterval = setInterval(updateIndicator, 200); 
     socket.emit("fetch", trainParams);
 });
 
+$(document).keypress(function (ev) {
+    if (ev.which == 13) $("#fetchButton").click().focus();
+});
 socket.on("answer", function (data) {
-    $("#answer").show();
+    clearInterval(indicatorInterval);
+    $("#loadingIndicator").html("").fadeOut(400, () => {
+        $("#answer").fadeIn();
+    });
     let answerCity1 = firstToUpperCase(trainParams.city1);
     let answerCity2 = firstToUpperCase(trainParams.city2);
     
